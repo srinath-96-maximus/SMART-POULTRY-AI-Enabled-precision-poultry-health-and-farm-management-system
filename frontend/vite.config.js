@@ -5,8 +5,16 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Support GitHub Pages base path when running in GitHub Actions or when VITE_BASE_PATH is set
+const repoName = process.env.GITHUB_REPOSITORY
+  ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}/`
+  : '/SMART-POULTRY-AI-Enabled-precision-poultry-health-and-farm-management-system/'
+
+const base = process.env.VITE_BASE_PATH || (process.env.GITHUB_ACTIONS === 'true' ? repoName : '/')
+
 // https://vitejs.dev/config/
 export default defineConfig({
+  base,
   plugins: [react()],
   resolve: {
     alias: {

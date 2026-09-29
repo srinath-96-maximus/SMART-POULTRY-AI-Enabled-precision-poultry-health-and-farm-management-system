@@ -1,6 +1,25 @@
 # Deployment Guide
 
-## Frontend — Vercel (Recommended)
+## Frontend — GitHub Pages (via GitHub Actions)
+
+An automated workflow (`.github/workflows/deploy.yml`) is configured to build and publish the frontend whenever code is pushed to the `main` branch.
+
+### One-Time Setup in GitHub
+
+1. Navigate to your repository on GitHub: [SMART-POULTRY-AI-Enabled-precision-poultry-health-and-farm-management-system](https://github.com/srinath-96-maximus/SMART-POULTRY-AI-Enabled-precision-poultry-health-and-farm-management-system)
+2. Go to **Settings** → **Pages** (under the "Code and automation" section).
+3. Under **Build and deployment** → **Source**, select **`GitHub Actions`**.
+4. (Recommended) Add Supabase secrets for production:
+   - Go to **Settings** → **Secrets and variables** → **Actions**.
+   - Click **New repository secret** and add:
+     - `VITE_SUPABASE_URL`
+     - `VITE_SUPABASE_ANON_KEY`
+5. Your frontend will be published live at:
+   `https://srinath-96-maximus.github.io/SMART-POULTRY-AI-Enabled-precision-poultry-health-and-farm-management-system/`
+
+---
+
+## Frontend — Vercel (Alternative)
 
 ### First Deploy
 
