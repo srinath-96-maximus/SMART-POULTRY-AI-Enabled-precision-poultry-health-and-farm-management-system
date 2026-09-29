@@ -1,0 +1,39 @@
+# ── Node / Build ───────────────────────────────────────
+node_modules/
+dist/
+*.local
+
+# ── Environment variables (NEVER commit real secrets) ──
+.env
+frontend/.env
+pi-agent/.env
+
+# ── Python ─────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+
+# ── Downloaded installers (not source code) ────────────
+*.msi
+*.zip
+nodejs/
+
+# ── Editor / OS ────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ── Logs ───────────────────────────────────────────────
+*.log
+npm-debug.log*
+pip-debug.log*
+
+# ── Test coverage ──────────────────────────────────────
+coverage/
+tests/coverage/
