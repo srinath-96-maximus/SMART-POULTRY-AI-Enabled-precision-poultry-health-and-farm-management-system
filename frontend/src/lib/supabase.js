@@ -18,3 +18,23 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     },
   },
 })
+
+/**
+ * Returns adminClient if VITE_SUPABASE_SERVICE_KEY is configured;
+ * otherwise gracefully falls back to the standard supabase client.
+ * This prevents the "supabaseKey is required" crash.
+ */
+export function getAdminClient() {
+  const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY
+  if (serviceKey && typeof serviceKey === 'string' && serviceKey.trim().length > 0) {
+    try {
+      return createClient(SUPABASE_URL, serviceKey.trim(), {
+        auth: { autoRefreshToken: false, persistSession: false },
+      })
+    } catch (e) {
+      console.warn('Failed to initialize elevated client, falling back to standard client:', e)
+      return supabase
+    }
+  }
+  return supabase
+}

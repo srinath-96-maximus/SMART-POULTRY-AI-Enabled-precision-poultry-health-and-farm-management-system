@@ -8,7 +8,7 @@ export const ROLE_PROFILES = {
     name: 'Ramesh Kumar',
     email: 'farmer@smartpoultry.in',
     role: 'farmer',
-    farm_id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    farm_id: 'e0fbcc28-6e39-472c-8b42-c96f70c386d3',   // real farm ID from Supabase
     farm_name: 'Sundarapandian Poultry Farm',
     farm_region: 'Coimbatore',
     region: 'Coimbatore',
@@ -37,6 +37,8 @@ export const ROLE_PROFILES = {
 }
 
 const STORAGE_KEY = 'smart_biosecurity_profile'
+// Bump this version whenever ROLE_PROFILES changes, to auto-clear stale sessions.
+const PROFILE_VERSION = 'v3'
 
 const AuthContext = createContext(null)
 
@@ -51,16 +53,28 @@ export function AuthProvider({ children }) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
-        setProfile(parsed)
+        // Auto-invalidate stale sessions when ROLE_PROFILES changes
+        const role = parsed?.role
+        const activeProfile =
+          parsed?._version !== PROFILE_VERSION && role && ROLE_PROFILES[role]
+            ? { ...ROLE_PROFILES[role], _version: PROFILE_VERSION }
+            : parsed
+
+        if (activeProfile !== parsed) {
+          // Refresh localStorage with updated profile
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(activeProfile))
+        }
+
+        setProfile(activeProfile)
         setSession({
           user: {
-            id: parsed.id,
-            email: parsed.email,
-            user_metadata: { ...parsed },
+            id: activeProfile.id,
+            email: activeProfile.email,
+            user_metadata: { ...activeProfile },
           },
         })
-        if (parsed.preferred_language) {
-          i18n.changeLanguage(parsed.preferred_language)
+        if (activeProfile.preferred_language) {
+          i18n.changeLanguage(activeProfile.preferred_language)
         }
         setLoading(false)
         return
@@ -145,7 +159,7 @@ export function AuthProvider({ children }) {
   }
 
   function loginAsRole(roleKey) {
-    const selectedProfile = ROLE_PROFILES[roleKey] || ROLE_PROFILES.farmer
+    const selectedProfile = { ...(ROLE_PROFILES[roleKey] || ROLE_PROFILES.farmer), _version: PROFILE_VERSION }
     const mockSession = {
       user: {
         id: selectedProfile.id,

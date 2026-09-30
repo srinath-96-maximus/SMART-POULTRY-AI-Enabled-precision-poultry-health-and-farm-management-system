@@ -384,35 +384,16 @@ function FarmSetupForm({ userId, onSuccess }) {
     }
     setLoading(true)
     try {
-      // Use a service-role client to bypass RLS for farm creation
-      // This is the only write that needs elevated access (the user has no farm yet)
-      const { createClient } = await import('@supabase/supabase-js')
-      const adminClient = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_SERVICE_KEY,
-        { auth: { autoRefreshToken: false, persistSession: false } }
-      )
-
-      const { data: farm, error: farmErr } = await adminClient
-        .from('farms')
-        .insert({
-          name: name.trim(),
-          owner_id: userId,
-          region,
-          latitude: lat ? parseFloat(lat) : null,
-          longitude: lng ? parseFloat(lng) : null
-        })
-        .select()
-        .single()
+      // Call SECURITY DEFINER RPC — creates farm + links profile without needing the service-role key
+      const { data: farm, error: farmErr } = await supabase.rpc('create_farm_for_user', {
+        p_user_id:   userId,
+        p_name:      name.trim(),
+        p_region:    region || null,
+        p_latitude:  lat ? parseFloat(lat) : null,
+        p_longitude: lng ? parseFloat(lng) : null,
+      })
 
       if (farmErr) throw farmErr
-
-      const { error: profileErr } = await adminClient
-        .from('profiles')
-        .update({ farm_id: farm.id })
-        .eq('id', userId)
-
-      if (profileErr) throw profileErr
 
       toast.success('Farm setup complete! Loading your dashboard...')
       await refetchProfile()

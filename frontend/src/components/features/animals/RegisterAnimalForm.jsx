@@ -22,19 +22,13 @@ export default function RegisterAnimalForm({ onClose, onSuccess }) {
     }
     setLoading(true)
     try {
-      // Use admin client to bypass RLS for animal insert
-      const { createClient } = await import('@supabase/supabase-js')
-      const adminClient = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_SERVICE_KEY,
-        { auth: { autoRefreshToken: false, persistSession: false } }
-      )
-      const { error } = await adminClient.from('animals').insert({
-        id:      rfid.trim().toUpperCase(),
-        farm_id: profile.farm_id,
-        species: 'hen',
-        name:    name.trim() || null,
-        colour:  colour.trim() || null,
+      // Call SECURITY DEFINER RPC — bypasses RLS without needing the service-role key
+      const { error } = await supabase.rpc('register_animal', {
+        p_id:      rfid.trim().toUpperCase(),
+        p_farm_id: profile.farm_id,
+        p_species: 'hen',
+        p_name:    name.trim() || null,
+        p_colour:  colour.trim() || null,
       })
       if (error) {
         if (error.code === '23505') toast.error(t('hens.rfidExists'))

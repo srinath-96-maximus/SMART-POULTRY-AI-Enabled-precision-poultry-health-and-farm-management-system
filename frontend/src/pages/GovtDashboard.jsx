@@ -1,10 +1,9 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { supabase } from '../lib/supabase'
+import { supabase, getAdminClient } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import Navbar from '../components/common/Navbar'
 import EmptyState from '../components/common/EmptyState'
-import { createClient } from '@supabase/supabase-js'
 import {
   Building2, MapPin, Phone, User, Eye, Search, ArrowUpDown,
   CheckCircle, AlertTriangle, Activity, TrendingUp, Award,
@@ -90,12 +89,8 @@ export default function GovtDashboard() {
     async function loadData() {
       setLoading(true)
       try {
-        // Create elevated client to bypass RLS for govt official view
-        const adminClient = createClient(
-          import.meta.env.VITE_SUPABASE_URL,
-          import.meta.env.VITE_SUPABASE_SERVICE_KEY,
-          { auth: { autoRefreshToken: false, persistSession: false } }
-        )
+        // Use elevated client if service key configured; otherwise fallback to supabase client
+        const adminClient = getAdminClient()
 
         const [farmsRes, profilesRes, animalsRes, alertsRes, readingsRes] = await Promise.all([
           adminClient.from('farms').select('*'),
@@ -129,16 +124,23 @@ export default function GovtDashboard() {
 
     loadData()
 
-    // Realtime channel subscription for live updates
+    // Realtime channel subscription for live updates with unique channel name
+    const channelName = `govt-dashboard-${Math.random().toString(36).substring(2, 8)}`
     const channel = supabase
-      .channel('govt-dashboard-realtime')
+      .channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, loadData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sensor_readings' }, loadData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'animals' }, loadData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'farms' }, loadData)
-      .subscribe()
+      .subscribe((status, err) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Govt dashboard Realtime error:', err)
+        }
+      })
 
-    return () => supabase.removeChannel(channel)
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   // Unique regions & taluks for filter dropdowns
