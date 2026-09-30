@@ -4,9 +4,7 @@ dist/
 *.local
 
 # ── Environment variables (NEVER commit real secrets) ──
-.env
-frontend/.env
-pi-agent/.env
+
 
 # ── Python ─────────────────────────────────────────────
 __pycache__/
