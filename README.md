@@ -1,11 +1,12 @@
-# Dev names and emails
+#TEAM: VALYRIANS
+---
+# TEAM MEMBERS
 1.SRINATH S\
 2.SHANMUGARAJA D\
 3.CHRISTINA DAMARIS E\
 4.HIRUTHI S\
 5.RAHUL M \
-6.SANJAY A\
-
+6.SANJAY A
 ---
 
 ## Project Structure
